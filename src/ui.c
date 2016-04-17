@@ -491,67 +491,35 @@ PianoList_t **BarUiListSongsEvent (const BarSettings_t *settings,
 		const PianoSong_t *song, const char *filter) {
 	size_t i = 0;
 	char digits[8];
-	//PianoList_t *options=calloc(PianoListCountP(song), sizeof(PianoList_t));
-	//PianoList_t *options=malloc(PianoListCountP(song) * sizeof(PianoList_t));
-	//PianoList_t *options=calloc(1,sizeof(PianoList_t));
 		PianoList_t **options=NULL, *option;
-		options = calloc(PianoListCountP(song), sizeof(PianoList_t));
+		options = calloc(PianoListCountP(song), sizeof(*options));
 	//PianoList_t *options=calloc(sizeof(PianoList_t), PianoListCountP(song));
-	fputs("DDDDDDDDDDDDDDDD\nDDDDDDDDDDDDDDDDD\n",stdout);
 	PianoListForeachP (song) {
 		if (filter == NULL ||
 				(filter != NULL && (BarStrCaseStr (song->artist, filter) != NULL ||
 				BarStrCaseStr (song->title, filter) != NULL))) {
-			//char outstr[512];
-			/*const char *vals[] = {digits, song->artist, song->title,
-					(song->rating == PIANO_RATE_LOVE) ? settings->loveIcon :
-					((song->rating == PIANO_RATE_BAN) ? settings->banIcon : "")};
-			*/
+
 				//PianoList_t option;
 				option = calloc(1,sizeof (*option));
 
-			//options=(PianoList_t *)realloc(options,i+1 * sizeof(PianoList_t));
-			//PianoList_t *noption;
 			//options[i]=malloc(sizeof(PianoList_t));
-			//options[i]=noption;
-			fputs("EEEEEEEEEEEEEEEE\nEEEEEEEEEEEEEEEEE\n",stdout);
-				//option->idx=i;
-//		options[i].idx=i;
 //		options[i]->idx=i;
-			fputs("FFFFFFFFFFFFFFFF\nFFFFFFFFFFFFFFFFF\n",stdout);
 				option->name=calloc(512,sizeof(char)); // song->artist+song_title+length of ' - ', if char=8 then + 24
-//		options[i].name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
 //		options[i]->name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
 				snprintf(option->name,512*sizeof(char),"%s - %s",song->artist, song->title);
 				option->size=i;
 				options[i]=option;
-			fputs("GGGGGGGGGGGGGGGG\nGGGGGGGGGGGGGGGGG\n",stdout);
-				fputs(option->name,stdout);
-				//options[i]=option;
 				//options=PianoListAppendP(options,option);
 
 
-		//snprintf(options[i].name,sizeof(options[i].name),"%s - %s",song->artist, song->title);
-//		snprintf(options[i]->name,sizeof(options[i]->name),"%s - %s",song->artist, song->title);
-				//fputs(options[i].name,stdout);
 			i++;
 		}
 //		else {
 //			options=PianoListAppend(options,option);
 //		}
-		// FIXME Does this go here or above? seems like this will brak our array if filter is used (skiping an indice, causing it to equal null, breaking futer foreach)
 	}
-	//PianoList_t *new_options=(PianoList_t *)realloc(options,i * sizeof(PianoList_t));
-	//options[i]=NULL;
-	//PianoList_t *noptions;
-	//	noptions=&options;
-	//PianoListForeachP (noptions) {
-	//for ( int j = 0; j<i;j++ ) {
-	//	fputs(options[j]->name,stdout);
-	//}
 	options[0]->size = i;
 
-	fputs("HHHHHHHHHHHHHHHH\nHHHHHHHHHHHHHHHHH\n",stdout);
 	return options;
 }
 /*	let user pick one song
@@ -599,35 +567,28 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 
 	memset (buf, 0, sizeof (buf));
 	PianoList_t **options=NULL, *option=NULL;
-	options = calloc(PianoListCountP(startArtist), sizeof(PianoList_t));
+	options = calloc(PianoListCountP(startArtist), sizeof(*options));
 	do {
 		/* print all artists */
 		i = 0;
 		tmpArtist = startArtist;
-		fputs("LLLLLLLLLLLLLLLL\nLLLLLLLLLLLLLLLLL\n",stdout);
 		PianoListForeachP (tmpArtist) {
 			if (BarStrCaseStr (tmpArtist->name, buf) != NULL) {
 				option = calloc(1,sizeof (*option));
-			fputs("MMMMMMMMMMMMMMMM\nMMMMMMMMMMMMMMMMM\n",stdout);
 				option->name=calloc(512,sizeof(char));
 				//strcpy(option->name,tmpArtist->name);
 				snprintf(option->name,512*sizeof(char),"%s",tmpArtist->name);
-			fputs("NNNNNNNNNNNNNNNN\nNNNNNNNNNNNNNNNNN\n",stdout);
 				option->size=i;
 				options[i]=option;
-			fputs("OOOOOOOOOOOOOOOO\nOOOOOOOOOOOOOOOOO\n",stdout);
 				BarUiMsg (&app->settings, MSG_LIST, "%2lu) %s\n", i,
 						tmpArtist->name);
 			}
-			fputs("PPPPPPPPPPPPPPPP\nPPPPPPPPPPPPPPPPP\n",stdout);
 			i++;
 		}
 		options[0]->size=i;
-			fputs("QQQQQQQQQQQQQQQQ\nQQQQQQQQQQQQQQQQQ\n",stdout);
 
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select artist: ");
 		BarUiActDefaultEventcmd ("promptselectartist");
-			fputs("RRRRRRRRRRRRRRRR\nRRRRRRRRRRRRRRRRR\n",stdout);
 		if (BarReadlineStr (buf, sizeof (buf), &app->input,
 				BAR_RL_DEFAULT) == 0) {
 			return NULL;
@@ -963,34 +924,20 @@ void BarUiStartEventCmd (const BarSettings_t *settings, const char *type,
 			const char * const msg = "stationCount=0\n";
 			fwrite (msg, sizeof (*msg), strlen (msg), pipeWriteFd);
 		}
-		fputs( "I AM HERE\nI AM HERE\n",stdout);
 		if (options != NULL) {
-			fputs( "AAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAA\n",stdout);
 			/* send station list */
 			//PianoList_t **sortedOptions = NULL;
 			size_t optionCount;
 			optionCount=options[0]->size;
-			//sortedOptions = BarSortedStations (options, &optionCount,
-			//		settings->sortOrder);
-			//assert (sortedOptions != NULL);
-			fputs( "BBBBBBBBBBBBBBBB\nBBBBBBBBBBBBBBBBB\n",stdout);
 
 			fprintf (pipeWriteFd, "optionCount=%zd\n", optionCount);
-			fputs("CCCCCCCCCCCCCCCC\nCCCCCCCCCCCCCCCCC\n",stdout);
 
 			for (size_t i = 0; i < optionCount ; i++) {
 				const PianoList_t *currOption = options[i];
-				//if (currOption.name == NULL) {
-				//	break;
-				//}
-				fputs("WROTE AN OPTION\nWROTE AN OPTION : ",stdout);
-				fputs(currOption->name,stdout);
-				fputs("\n",stdout);
 				fprintf (pipeWriteFd, "option%zd=%s\n", i,
 						currOption->name);
 			}
-			fputs("WINWINWIN\nWINWINWIN\n",stdout);
-			//free (sortedOptions);
+			//free (options);
 		} else {
 			const char * const msg = "optionCount=0\n";
 			fwrite (msg, sizeof (*msg), strlen (msg), pipeWriteFd);
