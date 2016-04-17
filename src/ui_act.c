@@ -417,8 +417,8 @@ BarUiActCallback(BarUiActSkipSong) {
 /*	play
  */
 BarUiActCallback(BarUiActPlay) {
-	PianoReturn_t pRet;
-	CURLcode wRet;
+	const PianoReturn_t pRet = PIANO_RET_OK;
+	const CURLcode wRet=CURLE_OK;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = false;
@@ -430,8 +430,8 @@ BarUiActCallback(BarUiActPlay) {
 /*	pause
  */
 BarUiActCallback(BarUiActPause) {
-	PianoReturn_t pRet;
-	CURLcode wRet;
+	const PianoReturn_t pRet = PIANO_RET_OK;
+	const CURLcode wRet=CURLE_OK;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = true;
@@ -443,8 +443,8 @@ BarUiActCallback(BarUiActPause) {
 /*	toggle pause
  */
 BarUiActCallback(BarUiActTogglePause) {
-	PianoReturn_t pRet;
-	CURLcode wRet;
+	const PianoReturn_t pRet = PIANO_RET_OK;
+	const CURLcode wRet=CURLE_OK;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = !app->player.doPause;
