@@ -281,7 +281,7 @@ BarUiActCallback(BarUiActExplain) {
 BarUiActCallback(BarUiActStationFromGenre) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
-	PianoList_t *options;
+	PianoList_t **options;
 	const PianoGenreCategory_t *curCat;
 	const PianoGenre_t *curGenre;
 	int i;
@@ -299,15 +299,19 @@ BarUiActCallback(BarUiActStationFromGenre) {
 
 	/* print all available categories */
 	curCat = app->ph.genreStations;
+	options = calloc(PianoListCountP(curCat), sizeof(PianoList_t));
 	i = 0;
 	PianoListForeachP (curCat) {
-		strcat(options[i].name,curCat->name);
+		options[i] = calloc(1,sizeof (PianoList_t));
+		options[i]->name = calloc(512,sizeof (char));
+		strcpy(options[i]->name,curCat->name);
+		options[i]->size = i;
 		BarUiMsg (&app->settings, MSG_LIST, "%2i) %s\n", i, curCat->name);
 		i++;
 	}
+	options[0]->size = i;
 	BarUiActDefaultEventcmd ("promptcategory");
 	memset(options, 0, i);
-
 	do {
 		/* select category or exit */
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select category: ");
@@ -320,11 +324,16 @@ BarUiActCallback(BarUiActStationFromGenre) {
 	/* print all available stations */
 	i = 0;
 	curGenre = curCat->genres;
+	options = calloc(PianoListCountP(curGenre), sizeof(PianoList_t));
 	PianoListForeachP (curGenre) {
-		strcat(options[i].name,curGenre->name);
+		options[i] = calloc(1,sizeof (PianoList_t));
+		options[i]->name = calloc(512,sizeof (char));
+		strcpy(options[i]->name,curGenre->name);
+		options[i]->size = i;
 		BarUiMsg (&app->settings, MSG_LIST, "%2i) %s\n", i, curGenre->name);
 		i++;
 	}
+	options[0]->size = i;
 	BarUiActDefaultEventcmd ("promptgenre");
 
 	do {

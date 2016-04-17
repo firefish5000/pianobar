@@ -519,10 +519,10 @@ PianoList_t **BarUiListSongsEvent (const BarSettings_t *settings,
 //		options[i].idx=i;
 //		options[i]->idx=i;
 			fputs("FFFFFFFFFFFFFFFF\nFFFFFFFFFFFFFFFFF\n",stdout);
-				option->name=calloc(1,512); // song->artist+song_title+length of ' - ', if char=8 then + 24
+				option->name=calloc(512,sizeof(char)); // song->artist+song_title+length of ' - ', if char=8 then + 24
 //		options[i].name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
 //		options[i]->name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
-				snprintf(option->name,512,"%s - %s",song->artist, song->title);
+				snprintf(option->name,512*sizeof(char),"%s - %s",song->artist, song->title);
 				option->size=i;
 				options[i]=option;
 			fputs("GGGGGGGGGGGGGGGG\nGGGGGGGGGGGGGGGGG\n",stdout);
@@ -599,22 +599,35 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 
 	memset (buf, 0, sizeof (buf));
 	PianoList_t **options=NULL, *option=NULL;
+	options = calloc(PianoListCountP(startArtist), sizeof(PianoList_t));
 	do {
 		/* print all artists */
 		i = 0;
 		tmpArtist = startArtist;
+		fputs("LLLLLLLLLLLLLLLL\nLLLLLLLLLLLLLLLLL\n",stdout);
 		PianoListForeachP (tmpArtist) {
 			if (BarStrCaseStr (tmpArtist->name, buf) != NULL) {
-				strcat(option->name,tmpArtist->name);
+				option = calloc(1,sizeof (*option));
+			fputs("MMMMMMMMMMMMMMMM\nMMMMMMMMMMMMMMMMM\n",stdout);
+				option->name=calloc(512,sizeof(char));
+				//strcpy(option->name,tmpArtist->name);
+				snprintf(option->name,512*sizeof(char),"%s",tmpArtist->name);
+			fputs("NNNNNNNNNNNNNNNN\nNNNNNNNNNNNNNNNNN\n",stdout);
+				option->size=i;
 				options[i]=option;
+			fputs("OOOOOOOOOOOOOOOO\nOOOOOOOOOOOOOOOOO\n",stdout);
 				BarUiMsg (&app->settings, MSG_LIST, "%2lu) %s\n", i,
 						tmpArtist->name);
 			}
+			fputs("PPPPPPPPPPPPPPPP\nPPPPPPPPPPPPPPPPP\n",stdout);
 			i++;
 		}
+		options[0]->size=i;
+			fputs("QQQQQQQQQQQQQQQQ\nQQQQQQQQQQQQQQQQQ\n",stdout);
 
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select artist: ");
 		BarUiActDefaultEventcmd ("promptselectartist");
+			fputs("RRRRRRRRRRRRRRRR\nRRRRRRRRRRRRRRRRR\n",stdout);
 		if (BarReadlineStr (buf, sizeof (buf), &app->input,
 				BAR_RL_DEFAULT) == 0) {
 			return NULL;
@@ -646,6 +659,7 @@ char *BarUiSelectMusicId (BarApp_t *app, PianoStation_t *station,
 	PianoList_t **options;
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "%s", msg);
+	BarUiActDefaultEventcmd ("promptsearchstring");
 	if (BarReadlineStr (lineBuf, sizeof (lineBuf), &app->input,
 			BAR_RL_DEFAULT) > 0) {
 		PianoReturn_t pRet;
