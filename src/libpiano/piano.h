@@ -103,6 +103,11 @@ typedef struct PianoSong {
 } PianoSong_t;
 
 /* currently only used for search results */
+typedef struct PianoList {
+	PianoListHead_t head;
+	char *name;
+	unsigned int *idx;
+} PianoList_t;
 typedef struct PianoArtist {
 	PianoListHead_t head;
 	char *name;

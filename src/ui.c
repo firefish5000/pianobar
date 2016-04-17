@@ -42,6 +42,11 @@ THE SOFTWARE.
 #include "ui.h"
 #include "ui_readline.h"
 
+//#define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
+//		name, selStation, selSong, &app->player, app->ph.stations, options, \
+//		pRet, wRet)
+#define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
+		name, app->curStation, app->playlist, &app->player, app->ph.stations, options, PIANO_RET_OK, CURLE_OK);
 typedef int (*BarSortFunc_t) (const void *, const void *);
 
 /*	is string a number?
@@ -476,6 +481,37 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
 	return retStation;
 }
 
+/*	Print list of songs
+ *	@param pianobar settings
+ *	@param linked list of songs
+ *	@param artist/song filter string
+ *	@return # of songs
+ */
+PianoList_t *BarUiListSongsEvent (const BarSettings_t *settings,
+		const PianoSong_t *song, const char *filter) {
+	size_t i = 0;
+	char digits[8];
+	PianoList_t *options;
+	PianoListForeachP (song) {
+		if (filter == NULL ||
+				(filter != NULL && (BarStrCaseStr (song->artist, filter) != NULL ||
+				BarStrCaseStr (song->title, filter) != NULL))) {
+			//char outstr[512];
+			/*const char *vals[] = {digits, song->artist, song->title,
+					(song->rating == PIANO_RATE_LOVE) ? settings->loveIcon :
+					((song->rating == PIANO_RATE_BAN) ? settings->banIcon : "")};
+			*/
+			options[i].idx=i;
+			snprintf(options[i].name,"%s - %s",song->artist, song->title);
+			//BarUiCustomFormat (outstr, sizeof (outstr), settings->listSongFormat,
+			//		"iatr", vals);
+		}
+		// FIXME Does this go here or above? seems like this will brak our array if filter is used (skiping an indice, causing it to equal null, breaking futer foreach)
+		i++;
+	}
+
+	return options;
+}
 /*	let user pick one song
  *	@param pianobar settings
  *	@param song list
@@ -483,7 +519,7 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
  *	@return pointer to selected item in song list or NULL
  */
 PianoSong_t *BarUiSelectSong (const BarSettings_t *settings,
-		PianoSong_t *startSong, BarReadlineFds_t *input) {
+		PianoSong_t *startSong, BarReadlineFds_t *input, BarApp_t *app) {
 	PianoSong_t *tmpSong = NULL;
 	char buf[100];
 
@@ -491,8 +527,11 @@ PianoSong_t *BarUiSelectSong (const BarSettings_t *settings,
 
 	do {
 		BarUiListSongs (settings, startSong, buf);
+		PianoList_t *options = BarUiListSongsEvent (settings, startSong, buf);
 
 		BarUiMsg (settings, MSG_QUESTION, "Select song: ");
+		BarUiActDefaultEventcmd ("promptselectsong");
+		//BarUiStartEventCmd (&app->settings, "promptselectsong", app->curStation, app->playlist, &app->player, app->ph.stations, options, PIANO_RET_OK, CURLE_OK);
 		if (BarReadlineStr (buf, sizeof (buf), input, BAR_RL_DEFAULT) == 0) {
 			return NULL;
 		}
@@ -517,13 +556,14 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 	unsigned long i;
 
 	memset (buf, 0, sizeof (buf));
-
+	PianoList_t *options;
 	do {
 		/* print all artists */
 		i = 0;
 		tmpArtist = startArtist;
 		PianoListForeachP (tmpArtist) {
 			if (BarStrCaseStr (tmpArtist->name, buf) != NULL) {
+				strcat(options[i].name,tmpArtist->name);
 				BarUiMsg (&app->settings, MSG_LIST, "%2lu) %s\n", i,
 						tmpArtist->name);
 			}
@@ -531,6 +571,7 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 		}
 
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select artist: ");
+		BarUiActDefaultEventcmd ("promptselectartist");
 		if (BarReadlineStr (buf, sizeof (buf), &app->input,
 				BAR_RL_DEFAULT) == 0) {
 			return NULL;
@@ -559,6 +600,7 @@ char *BarUiSelectMusicId (BarApp_t *app, PianoStation_t *station,
 	PianoSearchResult_t searchResult;
 	PianoArtist_t *tmpArtist;
 	PianoSong_t *tmpSong;
+	PianoList_t *options;
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "%s", msg);
 	if (BarReadlineStr (lineBuf, sizeof (lineBuf), &app->input,
@@ -581,6 +623,7 @@ char *BarUiSelectMusicId (BarApp_t *app, PianoStation_t *station,
 				searchResult.artists != NULL) {
 			/* songs and artists found */
 			BarUiMsg (&app->settings, MSG_QUESTION, "Is this an [a]rtist or [t]rack name? ");
+			BarUiActDefaultEventcmd ("promptartisttrack");
 			BarReadline (selectBuf, sizeof (selectBuf), "at", &app->input,
 					BAR_RL_FULLRETURN, -1);
 			if (*selectBuf == 'a') {
@@ -590,7 +633,7 @@ char *BarUiSelectMusicId (BarApp_t *app, PianoStation_t *station,
 				}
 			} else if (*selectBuf == 't') {
 				tmpSong = BarUiSelectSong (&app->settings, searchResult.songs,
-						&app->input);
+					&app->input,app);
 				if (tmpSong != NULL) {
 					musicId = strdup (tmpSong->musicId);
 				}
@@ -598,7 +641,12 @@ char *BarUiSelectMusicId (BarApp_t *app, PianoStation_t *station,
 		} else if (searchResult.songs != NULL) {
 			/* songs found */
 			tmpSong = BarUiSelectSong (&app->settings, searchResult.songs,
-					&app->input);
+					&app->input,app);
+/* #define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
+		name, selStation, selSong, &app->player, app->ph.stations, options, \
+		pRet, wRet)
+	BarUiStartEventCmd (&app->settings, "userlogin", NULL, NULL, &app->player, NULL, NULL, pRet, wRet);
+*/
 			if (tmpSong != NULL) {
 				musicId = strdup (tmpSong->musicId);
 			}
@@ -767,7 +815,7 @@ size_t BarUiListSongs (const BarSettings_t *settings,
 void BarUiStartEventCmd (const BarSettings_t *settings, const char *type,
 		const PianoStation_t *curStation, const PianoSong_t *curSong,
 		const player_t * const player, PianoStation_t *stations,
-		PianoReturn_t pRet, CURLcode wRet) {
+		PianoList_t *options, PianoReturn_t pRet, CURLcode wRet) {
 	pid_t chld;
 	int pipeFd[2];
 
@@ -834,7 +882,7 @@ void BarUiStartEventCmd (const BarSettings_t *settings, const char *type,
 				curl_easy_strerror (wRet),
 				player->songDuration,
 				player->songPlayed,
-				curSong == NULL ? PIANO_RATE_NONE : curSong->rating,
+		curSong == NULL ? PIANO_RATE_NONE : curSong->rating,
 				curSong == NULL ? "" : curSong->detailUrl
 				);
 
@@ -858,6 +906,28 @@ void BarUiStartEventCmd (const BarSettings_t *settings, const char *type,
 			const char * const msg = "stationCount=0\n";
 			fwrite (msg, sizeof (*msg), strlen (msg), pipeWriteFd);
 		}
+		if (options != NULL) {
+			/* send station list */
+			//PianoList_t **sortedOptions = NULL;
+			size_t optionCount;
+			optionCount=PianoListCountP(options);
+			//sortedOptions = BarSortedStations (options, &optionCount,
+			//		settings->sortOrder);
+			//assert (sortedOptions != NULL);
+
+			fprintf (pipeWriteFd, "optionCount=%zd\n", optionCount);
+
+			for (size_t i = 0; i < optionCount; i++) {
+				//const PianoList_t *currOption = sortedOptions[i];
+				fprintf (pipeWriteFd, "option%zd=%s\n", i,
+						options[i].name);
+			}
+			//free (sortedOptions);
+		} else {
+			const char * const msg = "optionCount=0\n";
+			fwrite (msg, sizeof (*msg), strlen (msg), pipeWriteFd);
+		}
+	
 	
 		/* closes pipeFd[1] as well */
 		fclose (pipeWriteFd);

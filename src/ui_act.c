@@ -38,7 +38,7 @@ THE SOFTWARE.
 /*	standard eventcmd call
  */
 #define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
-		name, selStation, selSong, &app->player, app->ph.stations, \
+		name, selStation, selSong, &app->player, app->ph.stations, options, \
 		pRet, wRet)
 
 /*	standard piano call
@@ -101,6 +101,7 @@ BarUiActCallback(BarUiActAddMusic) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoRequestDataAddSeed_t reqData;
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 
@@ -127,6 +128,7 @@ BarUiActCallback(BarUiActBanSong) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoStation_t *realStation;
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 	assert (selSong != NULL);
@@ -159,6 +161,7 @@ BarUiActCallback(BarUiActCreateStation) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoRequestDataCreateStation_t reqData;
+	PianoList_t *options;
 
 	reqData.type = PIANO_MUSICTYPE_INVALID;
 	reqData.token = BarUiSelectMusicId (app, NULL,
@@ -178,6 +181,7 @@ BarUiActCallback(BarUiActCreateStationFromSong) {
 	CURLcode wRet;
 	PianoRequestDataCreateStation_t reqData;
 	char selectBuf[2];
+	PianoList_t *options;
 
 	reqData.token = selSong->trackToken;
 	reqData.type = PIANO_MUSICTYPE_INVALID;
@@ -208,6 +212,7 @@ BarUiActCallback(BarUiActAddSharedStation) {
 	CURLcode wRet;
 	char stationId[50];
 	PianoRequestDataCreateStation_t reqData;
+	PianoList_t *options;
 
 	reqData.token = stationId;
 	reqData.type = PIANO_MUSICTYPE_INVALID;
@@ -226,6 +231,7 @@ BarUiActCallback(BarUiActAddSharedStation) {
 BarUiActCallback(BarUiActDeleteStation) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 
@@ -256,6 +262,7 @@ BarUiActCallback(BarUiActExplain) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoRequestDataExplain_t reqData;
+	PianoList_t *options;
 
 	assert (selSong != NULL);
 
@@ -274,6 +281,7 @@ BarUiActCallback(BarUiActExplain) {
 BarUiActCallback(BarUiActStationFromGenre) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
+	PianoList_t *options;
 	const PianoGenreCategory_t *curCat;
 	const PianoGenre_t *curGenre;
 	int i;
@@ -293,9 +301,12 @@ BarUiActCallback(BarUiActStationFromGenre) {
 	curCat = app->ph.genreStations;
 	i = 0;
 	PianoListForeachP (curCat) {
+		strcat(options[i].name,curCat->name);
 		BarUiMsg (&app->settings, MSG_LIST, "%2i) %s\n", i, curCat->name);
 		i++;
 	}
+	BarUiActDefaultEventcmd ("promptcategory");
+	memset(options, 0, i);
 
 	do {
 		/* select category or exit */
@@ -310,9 +321,11 @@ BarUiActCallback(BarUiActStationFromGenre) {
 	i = 0;
 	curGenre = curCat->genres;
 	PianoListForeachP (curGenre) {
+		strcat(options[i].name,curGenre->name);
 		BarUiMsg (&app->settings, MSG_LIST, "%2i) %s\n", i, curGenre->name);
 		i++;
 	}
+	BarUiActDefaultEventcmd ("promptgenre");
 
 	do {
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select genre: ");
@@ -385,6 +398,7 @@ BarUiActCallback(BarUiActLoveSong) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoStation_t *realStation;
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 	assert (selSong != NULL);
@@ -419,6 +433,7 @@ BarUiActCallback(BarUiActSkipSong) {
 BarUiActCallback(BarUiActPlay) {
 	const PianoReturn_t pRet = PIANO_RET_OK;
 	const CURLcode wRet=CURLE_OK;
+	PianoList_t *options;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = false;
@@ -432,6 +447,7 @@ BarUiActCallback(BarUiActPlay) {
 BarUiActCallback(BarUiActPause) {
 	const PianoReturn_t pRet = PIANO_RET_OK;
 	const CURLcode wRet=CURLE_OK;
+	PianoList_t *options;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = true;
@@ -445,6 +461,7 @@ BarUiActCallback(BarUiActPause) {
 BarUiActCallback(BarUiActTogglePause) {
 	const PianoReturn_t pRet = PIANO_RET_OK;
 	const CURLcode wRet=CURLE_OK;
+	PianoList_t *options;
 
 	pthread_mutex_lock (&app->player.pauseMutex);
 	app->player.doPause = !app->player.doPause;
@@ -464,6 +481,7 @@ BarUiActCallback(BarUiActRenameStation) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	char lineBuf[100];
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 
@@ -504,6 +522,7 @@ BarUiActCallback(BarUiActSelectStation) {
 BarUiActCallback(BarUiActTempBanSong) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
+	PianoList_t *options;
 
 	assert (selSong != NULL);
 
@@ -570,6 +589,7 @@ static void BarUiActQuickmixCallback (BarApp_t *app, char *buf) {
 BarUiActCallback(BarUiActSelectQuickMix) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
+	PianoList_t *options;
 
 	assert (selStation != NULL);
 
@@ -603,7 +623,7 @@ BarUiActCallback(BarUiActHistory) {
 
 	if (app->songHistory != NULL) {
 		histSong = BarUiSelectSong (&app->settings, app->songHistory,
-				&app->input);
+				&app->input,app);
 		if (histSong != NULL) {
 			BarKeyShortcutId_t action;
 			PianoStation_t *songStation = PianoFindStationById (app->ph.stations,
@@ -640,6 +660,7 @@ BarUiActCallback(BarUiActBookmark) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	char selectBuf[2];
+	PianoList_t *options;
 
 	assert (selSong != NULL);
 
@@ -690,6 +711,7 @@ BarUiActCallback(BarUiActSettings) {
 	PianoSettings_t settings;
 	PianoRequestDataChangeSettings_t reqData;
 	bool modified = false;
+	PianoList_t *options;
 
 	memset (&settings, 0, sizeof (settings));
 	memset (&reqData, 0, sizeof (reqData));
@@ -784,6 +806,7 @@ BarUiActCallback(BarUiActManageStation) {
 	PianoReturn_t pRet;
 	CURLcode wRet;
 	PianoRequestDataGetStationInfo_t reqData;
+	PianoList_t *options;
 	char selectBuf[2], allowedActions[6], *allowedPos = allowedActions;
 	char question[64];
 
@@ -858,7 +881,7 @@ BarUiActCallback(BarUiActManageStation) {
 			}
 		} else if (selectBuf[0] == 's') {
 			PianoSong_t *song = BarUiSelectSong (&app->settings,
-					reqData.info.songSeeds, &app->input);
+					reqData.info.songSeeds, &app->input,app);
 			if (song != NULL) {
 				PianoRequestDataDeleteSeed_t subReqData;
 
@@ -885,7 +908,7 @@ BarUiActCallback(BarUiActManageStation) {
 			}
 		} else if (selectBuf[0] == 'f') {
 			PianoSong_t *song = BarUiSelectSong (&app->settings,
-					reqData.info.feedback, &app->input);
+					reqData.info.feedback, &app->input,app);
 			if (song != NULL) {
 				BarUiMsg (&app->settings, MSG_INFO, "Deleting feedback... ");
 				BarUiActDefaultPianoCall (PIANO_REQUEST_DELETE_FEEDBACK, song);
