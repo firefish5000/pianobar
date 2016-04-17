@@ -106,7 +106,8 @@ typedef struct PianoSong {
 typedef struct PianoList {
 	PianoListHead_t head;
 	char *name;
-	unsigned int *idx;
+	size_t *idx;
+	size_t *size;
 } PianoList_t;
 typedef struct PianoArtist {
 	PianoListHead_t head;

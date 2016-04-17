@@ -49,7 +49,7 @@ void BarUiPrintSong (const BarSettings_t *, const PianoSong_t *,
 size_t BarUiListSongs (const BarSettings_t *, const PianoSong_t *, const char *);
 void BarUiStartEventCmd (const BarSettings_t *, const char *,
 		const PianoStation_t *, const PianoSong_t *, const player_t *,
-		PianoStation_t *, PianoList_t *, PianoReturn_t, CURLcode);
+		PianoStation_t *, PianoList_t **, PianoReturn_t, CURLcode);
 bool BarUiPianoCall (BarApp_t * const, const PianoRequestType_t,
 		void *, PianoReturn_t *, CURLcode *);
 void BarUiHistoryPrepend (BarApp_t *app, PianoSong_t *song);

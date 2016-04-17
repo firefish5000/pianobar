@@ -103,9 +103,14 @@ size_t PianoListCount (const PianoListHead_t * const l) {
 	size_t count = 0;
 	const PianoListHead_t *curr = l;
 
+	fputs( "IIIIIIIIIIIIIIII\nIIIIIIIIIIIIIIIII\n",stdout);
 	PianoListForeach (curr) {
 		++count;
+		fputs( "I+1+I+1+I+1+I : ",stdout);
+		printf("%zu",count);
+		fputs( "\n", stdout);
 	}
+	fputs( "JJJJJJJJJJJJJJJJ\nJJJJJJJJJJJJJJJJJ\n",stdout);
 
 	return count;
 }
