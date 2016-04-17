@@ -491,7 +491,7 @@ PianoList_t **BarUiListSongsEvent (const BarSettings_t *settings,
 		const PianoSong_t *song, const char *filter) {
 	size_t i = 0;
 	char digits[8];
-		PianoList_t **options=NULL, *option;
+		PianoList_t **options=NULL;
 		options = calloc(PianoListCountP(song), sizeof(*options));
 	//PianoList_t *options=calloc(sizeof(PianoList_t), PianoListCountP(song));
 	PianoListForeachP (song) {
@@ -499,24 +499,17 @@ PianoList_t **BarUiListSongsEvent (const BarSettings_t *settings,
 				(filter != NULL && (BarStrCaseStr (song->artist, filter) != NULL ||
 				BarStrCaseStr (song->title, filter) != NULL))) {
 
-				//PianoList_t option;
-				option = calloc(1,sizeof (*option));
+				options[i] = calloc(1,sizeof (*options[i]));
 
-			//options[i]=malloc(sizeof(PianoList_t));
-//		options[i]->idx=i;
-				option->name=calloc(512,sizeof(char)); // song->artist+song_title+length of ' - ', if char=8 then + 24
-//		options[i]->name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
-				snprintf(option->name,512*sizeof(char),"%s - %s",song->artist, song->title);
-				option->size=i;
-				options[i]=option;
-				//options=PianoListAppendP(options,option);
+				//options[i]->idx=i;
+				options[i]->name=calloc(512,sizeof(char)); // song->artist+song_title+length of ' - ', if char=8 then + 24
+				//options[i]->name=calloc(1,sizeof(song->artist) + sizeof(song->title)+4);
+				snprintf(options[i]->name,512*sizeof(char),"%s - %s",song->artist, song->title);
+				options[i]->size=i;
 
 
 			i++;
 		}
-//		else {
-//			options=PianoListAppend(options,option);
-//		}
 	}
 	options[0]->size = i;
 
@@ -566,7 +559,7 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 	unsigned long i;
 
 	memset (buf, 0, sizeof (buf));
-	PianoList_t **options=NULL, *option=NULL;
+	PianoList_t **options=NULL;
 	options = calloc(PianoListCountP(startArtist), sizeof(*options));
 	do {
 		/* print all artists */
@@ -574,12 +567,11 @@ PianoArtist_t *BarUiSelectArtist (BarApp_t *app, PianoArtist_t *startArtist) {
 		tmpArtist = startArtist;
 		PianoListForeachP (tmpArtist) {
 			if (BarStrCaseStr (tmpArtist->name, buf) != NULL) {
-				option = calloc(1,sizeof (*option));
-				option->name=calloc(512,sizeof(char));
-				//strcpy(option->name,tmpArtist->name);
-				snprintf(option->name,512*sizeof(char),"%s",tmpArtist->name);
-				option->size=i;
-				options[i]=option;
+				options[i] = calloc(1,sizeof (*options[i]));
+				options[i]->name=calloc(512,sizeof(char));
+				//strcpy(options[i]->name,tmpArtist->name);
+				snprintf(options[i]->name,512*sizeof(char),"%s",tmpArtist->name);
+				options[i]->size=i;
 				BarUiMsg (&app->settings, MSG_LIST, "%2lu) %s\n", i,
 						tmpArtist->name);
 			}
