@@ -47,7 +47,24 @@ properly:
    so not realy a problem, and it is thanks to this fact that we can
    determin if prompts are open/closed so easily(if it is open, the last
    event will still be the prompt)!
+ - You need to ensure that the control fifo is not written to by another applicaion while you recieve the prompt event, and respond to it. ie. a pause/play 'p' could be sent to the prompt before you respond, or another process could close the prompt before you respond. While the events make us easier to use as a server, we still are still intended to be interacted with by a single user/client. Not by multiple like mpd.
 
+Prompt events
+
+Event Name          | Prompt Key | Event Description                                                | Options |
+------------------- | ---------- | ------------------------------------------------------------------| ----------- |
+promptselectstation | s | Prompting user to select an existing station to play | LISTED
+promptcategory      | g | Prompting for user to select a genre category | LISTED
+promptgenre         | g | Prompting for user to select a genre (after haveing selected a genre category) | LISTED
+promptsearchstring  | c | Prompting for user to enter search string for adding a station  | STRING
+promptsearchstring  | a | Prompting for user to enter search string for adding to a station  |STRING
+promptartisttrack   | c | Prompt to select if search was for an artist or a track | 'a' 't'
+promptselectartist  | c | Prompt to select artist from search result | LISTED
+promptselecttrack  | c | Prompt to select track from search result | LISTED
+promptsongartist   | v | Prompt to create station from song or artist | 's' 'a'
+promptbookmark     | b | Prompt to bookmark song or artist | 's' 'a'
+promptchangesetting     | ! | Prompt to select setting to change: 1) Username 2) Password 3) Explicit content filter | '1' '2' '3'
+promptstationid    | j | Prompt for shared station Id to add | STRING
 
 ###Source Code
 
