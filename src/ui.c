@@ -46,7 +46,7 @@ THE SOFTWARE.
 //		name, selStation, selSong, &app->player, app->ph.stations, options, \
 //		pRet, wRet)
 #define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
-		name, app->curStation, app->playlist, &app->player, app->ph.stations, options, PIANO_RET_OK, CURLE_OK);
+		name, app->curStation, app->playlist, &app->player, app->ph.stations, options, PIANO_RET_OK, CURLE_OK); app->lastEventType=PIANO_EV_PROMPT;
 typedef int (*BarSortFunc_t) (const void *, const void *);
 
 /*	is string a number?
@@ -424,6 +424,7 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
 	PianoStation_t **sortedStations = NULL, *retStation = NULL;
 	size_t stationCount, i, lastDisplayed, displayCount;
 	char buf[100];
+	PianoList_t **options=NULL;
 
 	if (stations == NULL) {
 		BarUiMsg (&app->settings, MSG_ERR, "No station available.\n");
@@ -435,6 +436,7 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
 	/* sort and print stations */
 	sortedStations = BarSortedStations (stations, &stationCount,
 			app->settings.sortOrder);
+	options = calloc(stationCount, sizeof(*options));
 
 	do {
 		displayCount = 0;
@@ -447,10 +449,17 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
 						currStation->isQuickMix ? 'Q' : ' ',
 						!currStation->isCreator ? 'S' : ' ',
 						currStation->name);
+				options[displayCount] = calloc(1,sizeof (*options[displayCount]));
+				options[displayCount]->name=calloc(512,sizeof(char));
+				//strcpy(options[i]->name,tmpArtist->name);
+				snprintf(options[displayCount]->name,512*sizeof(char),"%s",currStation->name);
+				options[displayCount]->size=displayCount;
+				
 				++displayCount;
 				lastDisplayed = i;
 			}
 		}
+		options[0]->size=displayCount;
 
 		BarUiMsg (&app->settings, MSG_QUESTION, "%s", prompt);
 		if (autoselect && displayCount == 1 && stationCount != 1) {
@@ -458,6 +467,7 @@ PianoStation_t *BarUiSelectStation (BarApp_t *app, PianoStation_t *stations,
 			BarUiMsg (&app->settings, MSG_NONE, "%zi\n", lastDisplayed);
 			retStation = sortedStations[lastDisplayed];
 		} else {
+			BarUiActDefaultEventcmd ("promptselectstation");
 			if (BarReadlineStr (buf, sizeof (buf), &app->input,
 					BAR_RL_DEFAULT) == 0) {
 				break;

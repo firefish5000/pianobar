@@ -72,6 +72,7 @@ static bool BarMainLoginUser (BarApp_t *app) {
 	ret = BarUiPianoCall (app, PIANO_REQUEST_LOGIN, &reqData, &pRet, &wRet);
 	BarUiStartEventCmd (&app->settings, "userlogin", NULL, NULL, &app->player,
 			NULL, NULL, pRet, wRet);
+	app->lastEventType=PIANO_EV_STATUS;
 
 	return ret;
 }
@@ -169,6 +170,7 @@ static bool BarMainGetStations (BarApp_t *app) {
 	ret = BarUiPianoCall (app, PIANO_REQUEST_GET_STATIONS, NULL, &pRet, &wRet);
 	BarUiStartEventCmd (&app->settings, "usergetstations", NULL, NULL, &app->player,
 			app->ph.stations,NULL, pRet, wRet);
+	app->lastEventType=PIANO_EV_STATUS;
 	return ret;
 }
 
@@ -226,6 +228,7 @@ static void BarMainGetPlaylist (BarApp_t *app) {
 	BarUiStartEventCmd (&app->settings, "stationfetchplaylist",
 			app->curStation, app->playlist, &app->player, app->ph.stations, NULL,
 			pRet, wRet);
+	app->lastEventType=PIANO_EV_STATUS;
 }
 
 /*	start new player thread
@@ -264,6 +267,7 @@ static void BarMainStartPlayback (BarApp_t *app, pthread_t *playerThread) {
 		BarUiStartEventCmd (&app->settings, "songstart",
 				app->curStation, curSong, &app->player, app->ph.stations, NULL,
 				PIANO_RET_OK, CURLE_OK);
+		app->lastEventType=PIANO_EV_STATUS;
 
 		/* prevent race condition, mode must _not_ be DEAD if
 		 * thread has been started */
@@ -282,6 +286,7 @@ static void BarMainPlayerCleanup (BarApp_t *app, pthread_t *playerThread) {
 	BarUiStartEventCmd (&app->settings, "songfinish", app->curStation,
 			app->playlist, &app->player, app->ph.stations, NULL, PIANO_RET_OK,
 			CURLE_OK);
+	app->lastEventType=PIANO_EV_STATUS;
 
 	/* FIXME: pthread_join blocks everything if network connection
 	 * is hung up e.g. */
@@ -325,6 +330,11 @@ static void BarMainPrintTime (BarApp_t *app) {
 			sign, songRemaining / 60, songRemaining % 60,
 			app->player.songDuration / 60,
 			app->player.songDuration % 60);
+	if (app->lastEventType != PIANO_EV_STATUS ) {
+		BarUiStartEventCmd (&app->settings, "showstatus", NULL, NULL, &app->player,
+			app->ph.stations,NULL, PIANO_RET_OK, CURLE_OK);
+		app->lastEventType=PIANO_EV_STATUS;
+	}
 }
 
 /*	main loop

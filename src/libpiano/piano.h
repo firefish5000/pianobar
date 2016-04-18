@@ -109,6 +109,11 @@ typedef struct PianoList {
 	size_t *idx;
 	size_t *size;
 } PianoList_t;
+typedef enum {
+	PIANO_EV_STATUS = 0,
+	PIANO_EV_REQUEST = 1,
+	PIANO_EV_PROMPT = 2
+} PianoEvent_t;
 typedef struct PianoArtist {
 	PianoListHead_t head;
 	char *name;

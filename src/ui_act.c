@@ -39,7 +39,13 @@ THE SOFTWARE.
  */
 #define BarUiActDefaultEventcmd(name) BarUiStartEventCmd (&app->settings, \
 		name, selStation, selSong, &app->player, app->ph.stations, options, \
-		pRet, wRet)
+		pRet, wRet); app->lastEventType=PIANO_EV_STATUS
+#define BarUiActPromptEventcmd(name) BarUiStartEventCmd (&app->settings, \
+		name, selStation, selSong, &app->player, app->ph.stations, options, \
+		pRet, wRet); app->lastEventType=PIANO_EV_PROMPT
+#define BarUiActDefaultEventcmdLocal(name,newEventType) BarUiStartEventCmd (&app->settings, \
+		name, selStation, selSong, &app->player, app->ph.stations, options, \
+		PIANO_RET_OK, CURLE_OK); app->lastEventType=newEventType
 
 /*	standard piano call
  */
@@ -187,6 +193,7 @@ BarUiActCallback(BarUiActCreateStationFromSong) {
 	reqData.type = PIANO_MUSICTYPE_INVALID;
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "Create station from [s]ong or [a]rtist? ");
+	BarUiActPromptEventcmd ("promptsongartist");
 	BarReadline (selectBuf, sizeof (selectBuf), "sa", &app->input,
 			BAR_RL_FULLRETURN, -1);
 	switch (selectBuf[0]) {
@@ -218,6 +225,7 @@ BarUiActCallback(BarUiActAddSharedStation) {
 	reqData.type = PIANO_MUSICTYPE_INVALID;
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "Station id: ");
+	BarUiActPromptEventcmd ("promptstationid");
 	if (BarReadline (stationId, sizeof (stationId), "0123456789", &app->input,
 			BAR_RL_DEFAULT, -1) > 0) {
 		BarUiMsg (&app->settings, MSG_INFO, "Adding shared station... ");
@@ -237,6 +245,7 @@ BarUiActCallback(BarUiActDeleteStation) {
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "Really delete \"%s\"? [yN] ",
 			selStation->name);
+	BarUiActPromptEventcmd ("promptdelete");
 	if (BarReadlineYesNo (false, &app->input)) {
 		BarUiMsg (&app->settings, MSG_INFO, "Deleting station... ");
 		if (BarUiActDefaultPianoCall (PIANO_REQUEST_DELETE_STATION,
@@ -310,7 +319,7 @@ BarUiActCallback(BarUiActStationFromGenre) {
 		i++;
 	}
 	options[0]->size = i;
-	BarUiActDefaultEventcmd ("promptcategory");
+	BarUiActPromptEventcmd ("promptcategory");
 	memset(options, 0, i);
 	do {
 		/* select category or exit */
@@ -334,7 +343,7 @@ BarUiActCallback(BarUiActStationFromGenre) {
 		i++;
 	}
 	options[0]->size = i;
-	BarUiActDefaultEventcmd ("promptgenre");
+	BarUiActPromptEventcmd ("promptgenre");
 
 	do {
 		BarUiMsg (&app->settings, MSG_QUESTION, "Select genre: ");
@@ -495,6 +504,7 @@ BarUiActCallback(BarUiActRenameStation) {
 	assert (selStation != NULL);
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "New name: ");
+	BarUiActPromptEventcmd ("promptrename");
 	if (BarReadlineStr (lineBuf, sizeof (lineBuf), &app->input, BAR_RL_DEFAULT) > 0) {
 		PianoRequestDataRenameStation_t reqData;
 		if (!BarTransformIfShared (app, selStation)) {
@@ -629,6 +639,8 @@ BarUiActCallback(BarUiActQuit) {
 BarUiActCallback(BarUiActHistory) {
 	char buf[2];
 	PianoSong_t *histSong;
+	const PianoReturn_t pRet = PIANO_RET_OK;
+	const CURLcode wRet=CURLE_OK;
 
 	if (app->songHistory != NULL) {
 		histSong = BarUiSelectSong (&app->settings, app->songHistory,
@@ -648,6 +660,9 @@ BarUiActCallback(BarUiActHistory) {
 
 				BarUiMsg (&app->settings, MSG_QUESTION, "What to do with this song? ");
 
+				// FIXME I have no clue what this does
+				PianoList_t **options;
+				BarUiActPromptEventcmd ("promptwhattodo");
 				if (BarReadline (buf, sizeof (buf), NULL, &app->input,
 						BAR_RL_FULLRETURN, -1) > 0) {
 					/* actions assume that selStation is the song's original
@@ -674,6 +689,7 @@ BarUiActCallback(BarUiActBookmark) {
 	assert (selSong != NULL);
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "Bookmark [s]ong or [a]rtist? ");
+	BarUiActPromptEventcmd ("promptbookmark");
 	BarReadline (selectBuf, sizeof (selectBuf), "sa", &app->input,
 			BAR_RL_FULLRETURN, -1);
 	if (selectBuf[0] == 's') {
@@ -741,6 +757,7 @@ BarUiActCallback(BarUiActSettings) {
 		int val;
 
 		BarUiMsg (&app->settings, MSG_QUESTION, "Change setting: ");
+		BarUiActPromptEventcmd ("promptchangesetting");
 		if (BarReadlineInt (&val, &app->input) == 0) {
 			break;
 		}
@@ -750,6 +767,7 @@ BarUiActCallback(BarUiActSettings) {
 				/* username */
 				char buf[80];
 				BarUiMsg (&app->settings, MSG_QUESTION, "New username: ");
+				BarUiActPromptEventcmd ("promptusername");
 				if (BarReadlineStr (buf, sizeof (buf), &app->input,
 						BAR_RL_DEFAULT) > 0) {
 					reqData.newUsername = strdup (buf);
@@ -762,6 +780,7 @@ BarUiActCallback(BarUiActSettings) {
 				/* password */
 				char buf[80];
 				BarUiMsg (&app->settings, MSG_QUESTION, "New password: ");
+				BarUiActPromptEventcmd ("promptpassword");
 				if (BarReadlineStr (buf, sizeof (buf), &app->input,
 						BAR_RL_NOECHO) > 0) {
 					reqData.newPassword = strdup (buf);
@@ -776,6 +795,7 @@ BarUiActCallback(BarUiActSettings) {
 				/* explicit content filter */
 				BarUiMsg (&app->settings, MSG_QUESTION,
 						"Enable explicit content filter? [yn] ");
+				BarUiActPromptEventcmd ("promptfilterexplicit");
 				reqData.explicitContentFilter =
 						BarReadlineYesNo (settings.explicitContentFilter,
 						&app->input) ? PIANO_TRUE : PIANO_FALSE;
@@ -873,6 +893,7 @@ BarUiActCallback(BarUiActManageStation) {
 	}
 
 	BarUiMsg (&app->settings, MSG_QUESTION, "%s", question);
+	BarUiActPromptEventcmd ("promptdeletewhat");
 	if (BarReadline (selectBuf, sizeof (selectBuf), allowedActions, &app->input,
 					BAR_RL_FULLRETURN, -1)) {
 		if (selectBuf[0] == 'a') {

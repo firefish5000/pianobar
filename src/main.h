@@ -42,6 +42,7 @@ typedef struct {
 	/* station of current song and station used to fetch songs from if playlist
 	 * is empty */
 	PianoStation_t *curStation, *nextStation;
+	PianoEvent_t lastEventType;
 	sig_atomic_t doQuit;
 	BarReadlineFds_t input;
 	unsigned int playerErrors;
