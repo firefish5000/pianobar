@@ -51,8 +51,13 @@ properly:
 
 Prompt events
 
+Ledgend |   |
+-------|------------------------------------------- |
+LISTED | Listed in option0 through option(optionCount). |
+STRING | Any string value, usualy for searches. |
+
 Event Name          | Prompt Key | Event Description                                                | Options |
-------------------- | ---------- | ------------------------------------------------------------------| ----------- |
+------------------- | -------- | ------------------------------------------------------------------| ----------- |
 promptselectstation | s | Prompting user to select an existing station to play | LISTED
 promptcategory      | g | Prompting for user to select a genre category | LISTED
 promptgenre         | g | Prompting for user to select a genre (after haveing selected a genre category) | LISTED
